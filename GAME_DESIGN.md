@@ -185,6 +185,9 @@ The senior-safety sibling graduated to a full design bible at **[docs/SUNSET-ORB
 - **Title screen** now opens with a plain-language explainer: "*A quick game that teaches you to spot phishing…*" + the colour-coded DELIVER/QUARANTINE/VERIFY one-liner + "~15 minutes". Buttons: START / SKIP (repeat players).
 - **"Click the sender's address"** everywhere (was "select"), and the shift status-bar hint is now **prominent** — brighter, larger, with the action bolded and highlighted ("▸ **Click the sender's address** to check it").
 
+**2026-07-29 — SHIPPED. Live at https://kate-rose.github.io/lunacorp/**
+Public repo `kate-rose/lunacorp`. Pushes to `main` auto-build and deploy via `.github/workflows/deploy.yml` (Node 20 → `npm ci` → `npm run build` → upload `dist/` → deploy-pages). `vite.config.ts` sets `base: './'`, which is what makes a project-path URL work — **don't change it**. Setup gotcha for future repos: the workflow's GITHUB_TOKEN could NOT create the Pages site (`configure-pages` with `enablement: true` → "Resource not accessible by integration"); the site had to be created once out-of-band (`gh api -X POST repos/OWNER/REPO/pages -f build_type=workflow`), after which the enablement flag was dropped and deploys are clean. **`docs/` is gitignored** — the *Is This Real, Dear?* bible stays private; `GAME_DESIGN.md` (this file) IS public.
+
 ## Open questions / playtest notes
 
 - Does the practice-reversal loop in orientation read as charming or condescending to experienced players? (Mitigation: ESC works everywhere.)
