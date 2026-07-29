@@ -2,119 +2,95 @@ import type { FilmCard, Msg } from '../types'
 
 // ── NEW CLERK ORIENTATION ▪ FILMSTRIP No. 7: "THE MAIL AND YOU" ──────────────
 
+// The web-address drill. Each URL is split into segments; the player clicks the
+// one that shows who really owns the site. `owner` marks the correct segment.
+export const URL_DRILLS: { segs: { t: string; owner?: boolean }[]; ok: string; no: string }[] = [
+  {
+    segs: [{ t: 'lunacorp.lun', owner: true }, { t: '/badge-portal' }],
+    ok: 'Yes. lunacorp.lun sits right before the slash, so this really is LUNACORP.',
+    no: 'Not quite. Everything after the slash is just the page. Look at what comes right BEFORE the first slash.',
+  },
+  {
+    segs: [{ t: 'lunacorp.lun.' }, { t: 'badge-revalidation.ert', owner: true }, { t: '/login' }],
+    ok: 'Yes. badge-revalidation.ert owns this. The "lunacorp.lun." in front is just decoration.',
+    no: 'That is the trap. Anyone can put "lunacorp.lun." at the front. The owner is the last name before the slash: badge-revalidation.ert.',
+  },
+  {
+    segs: [{ t: 'secure-lunacorp.lun', owner: true }, { t: '/verify' }],
+    ok: 'Right. And notice: secure-lunacorp.lun is NOT lunacorp.lun. A hyphen makes a whole different site.',
+    no: 'Close. The owner is secure-lunacorp.lun. And that is not lunacorp.lun at all: a hyphen makes a whole different site.',
+  },
+]
+
 // Inline markup available in `lines`:  {g:green}  {r:red}  {b:blue}  **bold**
 export const FILM_CARDS: FilmCard[] = [
   {
-    title: 'LUNACORP NEW CLERK ORIENTATION',
+    title: '1 — WHAT THIS IS',
     lines: [
-      'FILMSTRIP No. 7 — "THE MAIL AND YOU"',
+      'This game teaches you to spot phishing: fake messages that try to steal passwords, money, or access.',
       '',
-      'Runtime: 94 seconds.',
-      'Attendance is mandatory and voluntary.',
+      'You are the new mail clerk at Port Armstrong, a company town on the Moon. Every message to the station passes your desk. Some are real. Some are not.',
       '',
-      'This filmstrip contains everything the corporation',
-      'is legally required to teach you.',
+      'It takes about 15 minutes.',
       '',
-      '**You may go back and forth at your own pace** using the',
-      'arrow keys, the buttons below, or the numbered dots.',
-      'The corporation cannot stop you. It has tried.',
+      '**Go back and forth at your own pace** with the buttons below, the numbered dots, or the arrow keys.',
     ],
   },
   {
-    title: 'MODULE 1 — THE POSITION',
+    title: '2 — THE THREE STAMPS',
     lines: [
-      'Congratulations, Clerk. You have been selected for',
-      'MESSAGE INTEGRITY on the basis of aptitude, availability,',
-      'and being the only applicant.',
+      'Every message gets exactly one stamp.',
       '',
-      'Every message to Port Armstrong passes through your',
-      'terminal. Residents trust the mail because the mail',
-      'passes through you.',
+      '{g:**DELIVER**} means it is real. Pass it along. Most mail is real, so this is the most common answer.',
       '',
-      'Do not dwell on this.',
+      '{r:**QUARANTINE**} means it is fake. Delete it.',
+      '',
+      '{b:**VERIFY**} means you cannot tell yet. Check with someone you already trust, using contact details you already have.',
+      '',
+      'The buttons at the bottom of the screen use these same colours.',
     ],
   },
   {
-    title: 'MODULE 2 — THE STAMPS',
-    lines: [
-      'You will read each message and apply exactly one (1)',
-      'stamp. Stamps are corporate property.',
-      '',
-      '{g:**DELIVER**} — the message is genuine. Route it.',
-      'Most mail is genuine. You are a lock, not a wall.',
-      '',
-      '{r:**QUARANTINE**} — the message is counterfeit. Burn it.',
-      'Do not feel bad. It is not a person.',
-      '',
-      '{b:**VERIFY**} — you cannot tell. Ask someone you already',
-      'trust, on a channel you already had. This is not',
-      'cheating. This is the job.',
-      '',
-      'The buttons are coloured to match. You will find them',
-      'along the bottom of your terminal.',
-    ],
-  },
-  {
-    title: 'MODULE 3 — ANATOMY OF A MESSAGE',
-    lines: [
-      'Every message on your terminal looks like this.',
-      'The numbered parts are the parts that can lie to you.',
-    ],
+    title: '3 — WHAT A MESSAGE LOOKS LIKE',
+    lines: ['The numbered parts are the ones that can lie to you.'],
     diagram: true,
   },
   {
-    title: 'MODULE 4 — THE RECORDS CHECK',
+    title: '4 — CHECK WHO SENT IT',
     lines: [
-      'Your terminal is equipped with a RECORDS CHECK.',
-      '**CLICK any sender’s address** — the part in',
-      '&lt;angle brackets&gt; — to compare it against the',
-      'STATION DIRECTORY and the vendor LEDGER.',
+      '**Click any sender address** to look it up in the station directory.',
       '',
-      'Counterfeits imitate listed addresses closely,',
-      'but never exactly. Read character by character;',
-      'the records check does it with you, and marks',
-      'a match {g:green} and a mismatch {r:red}.',
+      'A fake address copies a real one closely, but never exactly. The check compares them one character at a time and marks a match {g:green} or a mismatch {r:red}.',
       '',
-      '(An exact match proves the address. Not the sender.',
-      'More on this later, by telephone.)',
-      '',
-      'Additional equipment will be issued as budget permits.',
-      'The budget is aware of you.',
+      'One thing to remember: a matching address proves the address is real. It does not prove the sender is safe. Accounts get stolen. What the message asks for still has to make sense.',
     ],
   },
   {
-    title: 'MODULE 5 — ERRORS',
+    title: '5 — READING A WEB ADDRESS',
     lines: [
-      'Delivering a counterfeit endangers a resident.',
-      'Quarantining genuine mail endangers the station.',
-      'Both are recorded in your file.',
+      'Links lie more often than anything else, and this is the one trick worth learning properly.',
       '',
-      'There is no third, safe kind of error.',
+      '**Find the first single slash. The real site is the name just before it.** Everything further left is decoration, and anyone can put anything there.',
+    ],
+    urlLesson: true,
+  },
+  {
+    title: '6 — TWO WAYS TO GET IT WRONG',
+    lines: [
+      'Passing along a fake hurts a person.',
+      'Blocking real mail hurts the station.',
       '',
-      'There is, however, the telephone.',
+      'Both count against you, so "block everything" is not a strategy. When you cannot tell, that is what {b:VERIFY} is for.',
+      '',
+      'One more thing. The clerk before you clicked something bad. That happens, and it was survivable. He then told nobody for three days, and that part was not. If something looks wrong, say so out loud right away. Nobody here gets blamed for reporting.',
     ],
   },
   {
-    title: 'MODULE 6 — THE NO-BLAME DOCTRINE (FORM 22-B)',
+    title: '7 — PRACTICE',
     lines: [
-      'Your predecessor made an error. Errors are survivable;',
-      'the corporation practices a No-Blame Doctrine.',
+      'One practice message next. Nothing here can hurt anyone.',
       '',
-      'Your predecessor then told no one for three days.',
-      'The Doctrine could not reach him in time.',
-      '',
-      'Report strange signals immediately. Saying',
-      '"I received a strange signal" out loud is a normal',
-      'and celebrated activity.',
-    ],
-  },
-  {
-    title: 'MODULE 7 — PRACTICE',
-    lines: [
-      'You will now process one (1) supervised practice',
-      'message. The terminal will point at things.',
-      '',
-      'It is not real. The resident it endangers is laminated.',
+      'The terminal will point at what to look at.',
     ],
   },
 ]
@@ -123,13 +99,13 @@ export const FILM_CARDS: FilmCard[] = [
 // numbered highlight boxes, then a legend. Teaches the interface before the
 // player is asked to use it under pressure.
 export const ANATOMY_PINS: { n: number; label: string }[] = [
-  { n: 1, label: 'The DISPLAY NAME. Decoration. Anyone may type anything here.' },
-  { n: 2, label: 'The ADDRESS — the fact. CLICK IT to run a RECORDS CHECK.' },
-  { n: 3, label: 'The SUBJECT. Where urgency and deadlines like to live.' },
-  { n: 4, label: 'A LINK. Hover it (long-press on a phone) to preview the real URL in the status bar.' },
-  { n: 5, label: 'An ATTACHMENT. Click to scan what the file truly is — once the scanner is issued.' },
-  { n: 6, label: 'The STATUS BAR. Your terminal talks to you here. Read it.' },
-  { n: 7, label: 'The STAMPS. {g:DELIVER}, {r:QUARANTINE}, {b:VERIFY}. Exactly one per message.' },
+  { n: 1, label: 'The name shown. Decoration. Anyone can type anything here.' },
+  { n: 2, label: 'The actual address. This is the fact. **Click it** to look it up.' },
+  { n: 3, label: 'The subject line. Where fake deadlines like to live.' },
+  { n: 4, label: 'A link. Hover it, or long-press on a phone, to see the real address.' },
+  { n: 5, label: 'An attachment. Click to check what the file really is.' },
+  { n: 6, label: 'The status bar. Your terminal tells you things here.' },
+  { n: 7, label: 'The stamps: {g:DELIVER}, {r:QUARANTINE}, {b:VERIFY}. One per message.' },
 ]
 
 // ── THE PRACTICE MESSAGE ─────────────────────────────────────────────────────

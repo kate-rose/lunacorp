@@ -86,6 +86,8 @@ export interface FilmCard {
   lines: string[]
   /** renders the annotated sample-message diagram beneath the lines */
   diagram?: boolean
+  /** renders the URL breakdown + click-the-owner drill beneath the lines */
+  urlLesson?: boolean
 }
 
 /** a single coach-mark beat; `target` is a selector the callout points its arrow at */

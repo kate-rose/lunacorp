@@ -3,7 +3,8 @@
 // file renders anything message-shaped.
 
 import { DECK, GUIDE_PAGES, INTERRUPT, INTERSTITIALS, buildFinaleBody } from './data/deck'
-import { ANATOMY_PINS, FILM_CARDS, PRACTICE } from './data/orientation'
+import { ANATOMY_PINS, FILM_CARDS, PRACTICE, URL_DRILLS } from './data/orientation'
+import { ferretReact, startFerret } from './ferret'
 import type { Grade, InterstitialId, Msg, Outcome, ResultRow } from './types'
 
 type Phase = 'title' | 'film' | 'practice' | 'shift' | 'review'
@@ -33,6 +34,7 @@ interface State {
   // the game
   phase: Phase
   filmIdx: number
+  drillPicks: Record<number, number> // URL drill index -> segment the player clicked
   orientation: boolean
   abstained: boolean
   msgIdx: number
@@ -62,6 +64,7 @@ const S: State = {
   airlockQuiz: false,
   phase: 'title',
   filmIdx: 0,
+  drillPicks: {},
   orientation: false,
   abstained: false,
   msgIdx: 0,
@@ -194,6 +197,7 @@ export function startApp() {
   app = document.getElementById('app')!
   window.addEventListener('keydown', onKey)
   window.addEventListener('resize', positionCoach)
+  startFerret()
   ;(window as unknown as Record<string, unknown>).MOON = {
     state: S,
     jump(n: number) {
@@ -279,6 +283,7 @@ function stamp(which: 'deliver' | 'quarantine') {
   }
   const route = (S.truthKnown ? 'VERIFIED → ' : '') + (which === 'deliver' ? 'DELIVERED' : 'QUARANTINED')
   S.results.push({ n: msg.n, label: msg.subject, route, grade: out.grade })
+  ferretReact(out.grade)
   if (msg.interruptAfter) S.pendingInterrupt = true
   S.overlay = { type: 'outcome', head: out.head, body, note: out.note, grade: out.grade, next: 'advance' }
   render()
@@ -629,13 +634,55 @@ function filmHtml(): string {
   <div class="screen film-screen">
     <div class="film-frame">
       <div class="film-title">${esc(card.title)}</div>
-      <div class="film-body">${richParas(card.lines)}${card.diagram ? anatomyHtml() : ''}</div>
+      <div class="film-body">${richParas(card.lines)}${card.diagram ? anatomyHtml() : ''}${card.urlLesson ? urlLessonHtml() : ''}</div>
       <div class="film-nav">
         <button class="btn dim small" data-film-back="1"${S.filmIdx === 0 ? ' disabled' : ''}>◀ BACK</button>
         <div class="film-dots">${dots}</div>
         <button class="btn small" data-film-next="1">${last ? 'BEGIN PRACTICE ▶' : 'NEXT ▶'}</button>
       </div>
       <div class="film-foot">CARD ${S.filmIdx + 1} / ${FILM_CARDS.length} · ←/→ arrow keys to page · [ESC] skip orientation</div>
+    </div>
+  </div>`
+}
+
+// The web-address lesson: a labelled breakdown, then click-the-owner practice.
+// The hardest idea in the game, so it gets shown, labelled, and then drilled.
+function urlLessonHtml(): string {
+  const breakdown = `
+  <div class="urlbd">
+    <div class="ucol dec"><span class="useg">lunacorp.lun.</span><span class="ulab">decoration<br>(anyone can add this)</span></div>
+    <div class="ucol own"><span class="useg">badge-revalidation.ert</span><span class="ulab">THE REAL SITE<br>(last name before the slash)</span></div>
+    <div class="ucol path"><span class="useg">/login</span><span class="ulab">just the page</span></div>
+  </div>
+  <p class="url-rule">So this link goes to <b class="c-red">badge-revalidation.ert</b>, not to lunacorp.lun. Reading left to right fools you. Start at the slash and look left.</p>`
+
+  const drills = URL_DRILLS.map((d, i) => {
+    const picked = S.drillPicks[i]
+    const answered = picked !== undefined
+    const correct = answered && d.segs[picked]?.owner === true
+    const segs = d.segs
+      .map((s, j) => {
+        let cls = 'useg-btn'
+        if (answered) {
+          if (s.owner) cls += ' right'
+          else if (j === picked) cls += ' wrong'
+          else cls += ' faded'
+        }
+        return `<button class="${cls}" data-drill="${i}" data-seg="${j}"${answered ? ' disabled' : ''}>${esc(s.t)}</button>`
+      })
+      .join('')
+    const fb = answered ? `<div class="drill-fb ${correct ? 'ok' : 'no'}">${correct ? '✓ ' : '✗ '}${esc(correct ? d.ok : d.no)}</div>` : ''
+    return `<div class="drill-row">${segs}${fb}</div>`
+  }).join('')
+
+  const done = URL_DRILLS.every((_, i) => S.drillPicks[i] !== undefined)
+  return `
+  <div class="urllesson">
+    ${breakdown}
+    <div class="drill">
+      <div class="drill-q">Your turn. In each link, <b>click the part that shows who really owns the site</b>:</div>
+      ${drills}
+      ${done ? '<div class="drill-done">That is the whole trick. You will use it all night.</div>' : ''}
     </div>
   </div>`
 }
@@ -1102,6 +1149,15 @@ function bind() {
   })
   app.querySelectorAll<HTMLElement>('[data-film-go]').forEach((el) => {
     el.addEventListener('click', () => filmGo(Number(el.dataset.filmGo)))
+  })
+
+  // URL drill: click the segment you think owns the site
+  app.querySelectorAll<HTMLElement>('[data-seg]').forEach((el) => {
+    el.addEventListener('click', () => {
+      if (el.hasAttribute('disabled')) return
+      S.drillPicks[Number(el.dataset.drill)] = Number(el.dataset.seg)
+      render()
+    })
   })
 
   // coach-mark navigation
