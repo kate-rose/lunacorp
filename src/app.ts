@@ -3,7 +3,7 @@
 // file renders anything message-shaped.
 
 import { DECK, GUIDE_PAGES, INTERRUPT, INTERSTITIALS, buildFinaleBody } from './data/deck'
-import { FILM_CARDS, PRACTICE } from './data/orientation'
+import { ANATOMY_PINS, FILM_CARDS, PRACTICE } from './data/orientation'
 import type { Grade, InterstitialId, Msg, Outcome, ResultRow } from './types'
 
 type Phase = 'title' | 'film' | 'practice' | 'shift' | 'review'
@@ -90,6 +90,17 @@ let app: HTMLElement
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
 const marks = (s: string) => esc(s).replace(/⟦/g, '<mark>').replace(/⟧/g, '</mark>')
+
+// Author-controlled markup for tutorial + coach copy: {g:…} {r:…} {b:…} and **bold**.
+// Deliberately NOT escaped — every string through here is ours, never player input.
+function rich(s: string): string {
+  return s
+    .replace(/\{g:([^}]*)\}/g, '<span class="c-green">$1</span>')
+    .replace(/\{r:([^}]*)\}/g, '<span class="c-red">$1</span>')
+    .replace(/\{b:([^}]*)\}/g, '<span class="c-cyan">$1</span>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+}
+const richParas = (lines: string[]) => lines.map((l) => `<p>${rich(l)}</p>`).join('')
 
 // colour a records-check line by its verdict: green for a match, red for a miss
 function lkClass(line: string): string {
@@ -182,6 +193,7 @@ function pickOutcome(msg: Msg, stamp: 'deliver' | 'quarantine'): Outcome {
 export function startApp() {
   app = document.getElementById('app')!
   window.addEventListener('keydown', onKey)
+  window.addEventListener('resize', positionCoach)
   ;(window as unknown as Record<string, unknown>).MOON = {
     state: S,
     jump(n: number) {
@@ -407,8 +419,15 @@ function onKey(e: KeyboardEvent) {
       render()
       return
     }
-    filmNext()
-    return
+    if (key === 'ArrowLeft' || key === 'Backspace' || key === 'PageUp') {
+      filmBack()
+      return
+    }
+    if (key === 'ArrowRight' || key === 'Enter' || key === ' ' || key === 'PageDown') {
+      filmNext()
+      return
+    }
+    return // let Tab and everything else behave natively
   }
   if (S.phase === 'review' && (key === 'r' || key === 'R')) location.reload()
 }
@@ -420,6 +439,18 @@ function filmNext() {
   } else {
     beginPractice()
   }
+}
+
+function filmBack() {
+  if (S.filmIdx > 0) {
+    S.filmIdx--
+    render()
+  }
+}
+
+function filmGo(i: number) {
+  S.filmIdx = Math.max(0, Math.min(FILM_CARDS.length - 1, i))
+  render()
 }
 
 function overlayContinue() {
@@ -474,6 +505,7 @@ function render() {
     app.appendChild(ov)
   }
   bind()
+  positionCoach()
 }
 
 // ── the desktop shell — the clerk's personal LUNACORP terminal ────────────────
@@ -588,13 +620,45 @@ function titleHtml(): string {
 
 function filmHtml(): string {
   const card = FILM_CARDS[S.filmIdx]
+  const last = S.filmIdx === FILM_CARDS.length - 1
+  const dots = FILM_CARDS.map(
+    (c, i) =>
+      `<button class="film-dot${i === S.filmIdx ? ' on' : ''}" data-film-go="${i}" title="${esc(c.title)}" aria-label="Card ${i + 1}: ${esc(c.title)}">${i + 1}</button>`,
+  ).join('')
   return `
   <div class="screen film-screen">
-    <div class="film-frame" data-act="film-next">
+    <div class="film-frame">
       <div class="film-title">${esc(card.title)}</div>
-      <div class="film-body">${paras(card.lines)}</div>
-      <div class="film-foot">[ ${S.filmIdx + 1} / ${FILM_CARDS.length} ] — ANY KEY, OR CLICK · BEEP</div>
+      <div class="film-body">${richParas(card.lines)}${card.diagram ? anatomyHtml() : ''}</div>
+      <div class="film-nav">
+        <button class="btn dim small" data-film-back="1"${S.filmIdx === 0 ? ' disabled' : ''}>◀ BACK</button>
+        <div class="film-dots">${dots}</div>
+        <button class="btn small" data-film-next="1">${last ? 'BEGIN PRACTICE ▶' : 'NEXT ▶'}</button>
+      </div>
+      <div class="film-foot">CARD ${S.filmIdx + 1} / ${FILM_CARDS.length} · ←/→ arrow keys to page · [ESC] skip orientation</div>
     </div>
+  </div>`
+}
+
+// MODULE 3's annotated sample message: highlight boxes + numbered pins + legend.
+// Teaches the interface before the player has to use it under pressure.
+function anatomyHtml(): string {
+  const pin = (n: number) => `<span class="pin">${n}</span>`
+  return `
+  <div class="anatomy">
+    <div class="anat-card">
+      <div class="anat-head">
+        <div class="hrow"><span class="hkey">FROM</span><span class="hval"><span class="anat-box">T. ONDRICEK${pin(1)}</span> <span class="anat-box hot">&lt;t.ondricek@lunacorp.lun&gt;${pin(2)}</span></span></div>
+        <div class="hrow"><span class="hkey">SUBJECT</span><span class="hval"><span class="anat-box">Welcome / the plant${pin(3)}</span></span></div>
+        <div class="hrow"><span class="hkey">ATTACH</span><span class="hval"><span class="anat-box">▣ HANDBOOK.doc${pin(5)}</span></span></div>
+      </div>
+      <div class="anat-body">Clerk — welcome to Message Integrity. Full details at <span class="anat-box">lunacorp.lun/handbook${pin(4)}</span>.</div>
+      <div class="anat-status"><span class="anat-box">▸ Click the sender’s address to check it${pin(6)}</span></div>
+      <div class="anat-tray"><span class="anat-box"><span class="mini-stamp g">DELIVER</span><span class="mini-stamp r">QUARANTINE</span><span class="mini-stamp b">VERIFY</span>${pin(7)}</span></div>
+    </div>
+    <ol class="anat-legend">
+      ${ANATOMY_PINS.map((p) => `<li><span class="pin">${p.n}</span><span>${rich(p.label)}</span></li>`).join('')}
+    </ol>
   </div>`
 }
 
@@ -666,23 +730,73 @@ function stampsLocked(msg: Msg): boolean {
 }
 
 function coachHtml(msg: Msg): string {
-  if (S.phase !== 'shift' || !S.orientation || !msg.coach) return ''
+  if (S.phase !== 'shift' && S.phase !== 'practice') return ''
+  if (!S.orientation || !msg.coach) return ''
   const steps = msg.coach.steps
   if (S.coachStep >= steps.length) {
     // the subroutine does not leave until the records check has run
     if (msg.coach.requireLookup && !S.lookupDone) {
-      return `
-  <div class="coach">
-    <div class="coach-body">ORIENTATION SUBROUTINE: the records check, Clerk. <b>Click the sender’s address</b> — the part in &lt;angle brackets&gt;. The stamps will wait. The corporation, technically, also.</div>
-  </div>`
+      return callout(
+        '.from-addr',
+        'ORIENTATION SUBROUTINE: the records check, Clerk. **Click the sender’s address** — the part in &lt;angle brackets&gt;. The stamps will wait. The corporation, technically, also.',
+        '',
+      )
     }
     return ''
   }
-  return `
-  <div class="coach">
-    <div class="coach-body">${esc(steps[S.coachStep])}</div>
-    <button class="btn dim small" data-act="coach-next">${S.coachStep < steps.length - 1 ? 'NEXT' : 'UNDERSTOOD'}</button>
+  const step = steps[S.coachStep]
+  const nav = `<div class="coach-nav">
+      <span class="coach-count">STEP ${S.coachStep + 1} / ${steps.length}</span>
+      <span class="coach-btns">
+        ${S.coachStep > 0 ? '<button class="btn dim small" data-coach-back="1">◀ BACK</button>' : ''}
+        <button class="btn small" data-coach-next="1">${S.coachStep < steps.length - 1 ? 'NEXT ▶' : 'GOT IT'}</button>
+      </span>
+    </div>`
+  return callout(step.target, step.text, nav)
+}
+
+function callout(target: string | undefined, text: string, nav: string): string {
+  return `<div class="coach" data-coach-target="${target ? esc(target) : ''}">
+    <div class="coach-body">${rich(text)}</div>
+    ${nav}
   </div>`
+}
+
+// Anchor the callout beside its target and point an arrow at it (measured after
+// render, so it survives reflow/resize). One coach mark at a time, by design.
+function positionCoach() {
+  app.querySelectorAll('.coach-target').forEach((e) => e.classList.remove('coach-target'))
+  const coach = app.querySelector<HTMLElement>('.coach')
+  if (!coach) return
+  const host = app.querySelector<HTMLElement>('.shift-screen')
+  const sel = coach.dataset.coachTarget
+  if (!host || !sel) return
+  const target = app.querySelector<HTMLElement>(sel)
+  if (!target) return
+  target.classList.add('coach-target')
+
+  const hb = host.getBoundingClientRect()
+  const tb = target.getBoundingClientRect()
+  const cw = coach.offsetWidth
+  const chh = coach.offsetHeight
+  const gap = 16
+  let arrow: 'left' | 'right' | 'up' = 'left'
+  let left = tb.right - hb.left + gap // default: to the RIGHT of the target
+  if (left + cw > hb.width - 10) {
+    const toLeft = tb.left - hb.left - cw - gap
+    if (toLeft > 10) {
+      left = toLeft
+      arrow = 'right'
+    } else {
+      left = Math.max(10, Math.min(tb.left - hb.left, hb.width - cw - 10))
+      arrow = 'up'
+    }
+  }
+  let top = arrow === 'up' ? tb.bottom - hb.top + gap : tb.top - hb.top + tb.height / 2 - chh / 2
+  top = Math.max(10, Math.min(top, hb.height - chh - 10))
+  coach.style.left = `${left}px`
+  coach.style.top = `${top}px`
+  coach.dataset.arrow = arrow
 }
 
 function overlayHtml(): string {
@@ -897,9 +1011,6 @@ function bind() {
           S.coachStep++
           render()
           break
-        case 'film-next':
-          filmNext()
-          break
         case 'ov-continue':
           overlayContinue()
           break
@@ -981,6 +1092,26 @@ function bind() {
       e.preventDefault()
       show()
     })
+  })
+
+  // filmstrip navigation — back / forward / jump to any card
+  app.querySelector<HTMLElement>('[data-film-next]')?.addEventListener('click', filmNext)
+  app.querySelector<HTMLElement>('[data-film-back]')?.addEventListener('click', (e) => {
+    if ((e.currentTarget as HTMLElement).hasAttribute('disabled')) return
+    filmBack()
+  })
+  app.querySelectorAll<HTMLElement>('[data-film-go]').forEach((el) => {
+    el.addEventListener('click', () => filmGo(Number(el.dataset.filmGo)))
+  })
+
+  // coach-mark navigation
+  app.querySelector<HTMLElement>('[data-coach-next]')?.addEventListener('click', () => {
+    S.coachStep++
+    render()
+  })
+  app.querySelector<HTMLElement>('[data-coach-back]')?.addEventListener('click', () => {
+    S.coachStep = Math.max(0, S.coachStep - 1)
+    render()
   })
 
   // desktop: open an app

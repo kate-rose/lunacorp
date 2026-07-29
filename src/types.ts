@@ -75,7 +75,7 @@ export interface Msg {
   scopes?: string[]
   allow?: Outcome
   deny?: Outcome
-  coach?: { requireLookup?: boolean; steps: string[] }
+  coach?: { requireLookup?: boolean; steps: CoachStep[] }
   unlockAfter?: InterstitialId[]
   interruptAfter?: boolean
   dynamic?: boolean // finale: body assembled at runtime
@@ -84,6 +84,14 @@ export interface Msg {
 export interface FilmCard {
   title: string
   lines: string[]
+  /** renders the annotated sample-message diagram beneath the lines */
+  diagram?: boolean
+}
+
+/** a single coach-mark beat; `target` is a selector the callout points its arrow at */
+export interface CoachStep {
+  text: string
+  target?: string
 }
 
 export interface ResultRow {

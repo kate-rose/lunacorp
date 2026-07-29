@@ -205,9 +205,9 @@ export const DECK: Msg[] = [
     coach: {
       requireLookup: true,
       steps: [
-        'ORIENTATION SUBROUTINE: this is a message. Read the FROM line first — the name AND the address after it.',
-        'Click the sender’s address to run a RECORDS CHECK. The corporation insists, tonight only. After that, it merely watches.',
-        'Listed station. Mundane ask. Nothing moving money, codes, or access. When you are ready: stamp.',
+        { text: 'ORIENTATION SUBROUTINE: this is a message. Read the FROM line first — the name AND the address after it.', target: '.msg-head' },
+        { text: '**Click the sender’s address** — right here — to run a RECORDS CHECK. The corporation insists, tonight only. After that, it merely watches.', target: '.from-addr' },
+        { text: 'Listed station. Mundane ask. Nothing moving money, codes, or access. When you are ready: stamp. {g:DELIVER} is the green one.', target: '.btn.stamp.deliver' },
       ],
     },
   },
@@ -278,8 +278,8 @@ export const DECK: Msg[] = [
     coach: {
       requireLookup: true,
       steps: [
-        'ORIENTATION SUBROUTINE: a bonus nobody asked for, a deadline, and a request for badge + PIN. Strong feelings are not evidence. Click the sender’s address to run the RECORDS CHECK.',
-        'Observe the difference the check found. One character is all a counterfeit needs — and all YOU need.',
+        { text: 'ORIENTATION SUBROUTINE: a bonus nobody asked for, a deadline, and a request for badge + PIN. Strong feelings are not evidence.', target: '.msg-body' },
+        { text: '**Click the sender’s address** and read what the check marks in {r:red}. One character is all a counterfeit needs — and all YOU need.', target: '.from-addr' },
       ],
     },
   },
@@ -349,8 +349,8 @@ export const DECK: Msg[] = [
     },
     coach: {
       steps: [
-        'ORIENTATION SUBROUTINE: final guided message. Look closely at the FROM line — the NAME says Director. Read what comes after the @.',
-        'A records check will settle it. After this message, the subroutine terminates. You are the subroutine now.',
+        { text: 'ORIENTATION SUBROUTINE: final guided message. The NAME says Director. **Read what comes after the @.**', target: '.from-addr' },
+        { text: 'A records check will settle it. After this message the subroutine terminates, and the pointing stops. You are the subroutine now.', target: '.tray' },
       ],
     },
     unlockAfter: ['lens'],

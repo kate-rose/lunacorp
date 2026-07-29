@@ -438,10 +438,156 @@ p {
   margin-bottom: 0.9em;
 }
 .film-foot {
-  margin-top: 1.4em;
+  margin-top: 1em;
   color: var(--amber-dim);
+  font-size: 0.8em;
+  letter-spacing: 0.08em;
+}
+/* frame stays put; only the card body scrolls, so the nav is always reachable */
+.film-frame {
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.film-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.film-nav,
+.film-foot,
+.film-title {
+  flex: 0 0 auto;
+}
+
+/* filmstrip navigation — page back and forth, or jump to any card */
+.film-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8em;
+  margin-top: 1.4em;
+  padding-top: 1em;
+  border-top: 1px solid var(--amber-dim);
+  flex-wrap: wrap;
+}
+.film-dots {
+  display: flex;
+  gap: 0.35em;
+  flex-wrap: wrap;
+}
+.film-dot {
+  width: 1.9em;
+  height: 1.9em;
+  font: inherit;
+  font-size: 0.8em;
+  color: var(--amber-dim);
+  background: transparent;
+  border: 1px solid var(--amber-dim);
+  cursor: pointer;
+  text-shadow: inherit;
+}
+.film-dot:hover {
+  color: var(--amber-hi);
+  border-color: var(--amber);
+  background: var(--amber-ghost);
+}
+.film-dot.on {
+  color: var(--bg);
+  background: var(--amber);
+  border-color: var(--amber);
+  text-shadow: none;
+}
+
+/* ── MODULE 3: the annotated sample message ── */
+.anatomy {
+  margin-top: 1.2em;
+}
+.anat-card {
+  border: 1px solid var(--amber-dim);
+  background: rgba(255, 176, 0, 0.04);
+  padding: 0.8em 0.9em;
+  font-size: 0.9em;
+}
+.anat-head .hrow {
+  padding: 0.2em 0;
+}
+.anat-body {
+  border-top: 1px dashed var(--amber-dim);
+  margin-top: 0.5em;
+  padding-top: 0.6em;
+  line-height: 1.9;
+}
+.anat-status {
+  margin-top: 0.7em;
+  border-top: 1px solid var(--amber-dim);
+  padding-top: 0.6em;
+  font-size: 0.95em;
+}
+.anat-tray {
+  margin-top: 0.6em;
+}
+/* the highlight boxes + numbered pins */
+.anat-box {
+  position: relative;
+  display: inline-block;
+  outline: 1px dashed var(--cyan-dim);
+  outline-offset: 3px;
+  margin-right: 1.1em;
+  border-radius: 2px;
+}
+.anat-box.hot {
+  outline: 2px solid var(--cyan);
+  background: rgba(69, 196, 230, 0.12);
+}
+.pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.45em;
+  height: 1.45em;
+  margin-left: 0.35em;
+  border-radius: 50%;
+  background: var(--cyan);
+  color: #06222b;
+  font-size: 0.75em;
+  font-weight: bold;
+  text-shadow: none;
+  vertical-align: middle;
+}
+.mini-stamp {
+  display: inline-block;
+  border: 1px solid currentColor;
+  padding: 0.15em 0.6em;
+  margin-right: 0.35em;
   font-size: 0.85em;
-  letter-spacing: 0.12em;
+}
+.mini-stamp.g {
+  color: var(--green);
+}
+.mini-stamp.r {
+  color: var(--red);
+}
+.mini-stamp.b {
+  color: var(--cyan);
+}
+.anat-legend {
+  list-style: none;
+  margin-top: 1.1em;
+  font-size: 0.85em;
+}
+.anat-legend li {
+  display: flex;
+  gap: 0.5em;
+  align-items: flex-start;
+  margin: 0.45em 0;
+  line-height: 1.45;
+}
+.anat-legend .pin {
+  flex: 0 0 auto;
+  margin-left: 0;
+  margin-top: 0.15em;
 }
 
 /* ── shift ── */
@@ -595,20 +741,112 @@ p {
   box-shadow: 0 0 14px rgba(69, 196, 230, 0.35);
 }
 
+/* ── coach marks: one callout at a time, anchored to what it's talking about ── */
+
+.shift-screen {
+  position: relative; /* positioning context for the callout */
+}
+
 .coach {
-  position: fixed;
-  right: 2vw;
-  bottom: 6.5em;
-  max-width: 340px;
-  border: 1px solid var(--amber-hi);
-  background: #171008;
-  padding: 0.9em 1em;
-  box-shadow: 0 0 24px rgba(255, 176, 0, 0.2);
+  position: absolute;
+  width: min(310px, 42vw);
+  border: 1px solid var(--cyan);
+  background: #0b1418;
+  padding: 0.85em 1em;
+  box-shadow: 0 0 26px rgba(69, 196, 230, 0.28);
   z-index: 20;
-  font-size: 0.9em;
+  font-size: 0.88em;
+  line-height: 1.5;
+  color: var(--cyan-hi);
+}
+.coach b {
+  color: #fff;
+}
+/* the pointer */
+.coach::before,
+.coach::after {
+  content: '';
+  position: absolute;
+  border: 9px solid transparent;
+}
+.coach[data-arrow='left']::before {
+  left: -18px;
+  top: 50%;
+  margin-top: -9px;
+  border-right-color: var(--cyan);
+}
+.coach[data-arrow='left']::after {
+  left: -16px;
+  top: 50%;
+  margin-top: -9px;
+  border-right-color: #0b1418;
+}
+.coach[data-arrow='right']::before {
+  right: -18px;
+  top: 50%;
+  margin-top: -9px;
+  border-left-color: var(--cyan);
+}
+.coach[data-arrow='right']::after {
+  right: -16px;
+  top: 50%;
+  margin-top: -9px;
+  border-left-color: #0b1418;
+}
+.coach[data-arrow='up']::before {
+  top: -18px;
+  left: 24px;
+  border-bottom-color: var(--cyan);
+}
+.coach[data-arrow='up']::after {
+  top: -16px;
+  left: 24px;
+  border-bottom-color: #0b1418;
 }
 .coach-body {
   margin-bottom: 0.7em;
+}
+.coach-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6em;
+  border-top: 1px solid rgba(69, 196, 230, 0.3);
+  padding-top: 0.6em;
+}
+.coach-count {
+  font-size: 0.85em;
+  color: var(--cyan-dim);
+  letter-spacing: 0.08em;
+}
+.coach-btns {
+  display: flex;
+  gap: 0.4em;
+}
+.coach-nav .btn {
+  color: var(--cyan);
+  border-color: var(--cyan-dim);
+}
+.coach-nav .btn:hover:not([disabled]) {
+  color: var(--cyan-hi);
+  border-color: var(--cyan);
+  background: rgba(69, 196, 230, 0.1);
+}
+
+/* the thing being pointed at */
+.coach-target {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 2px;
+  animation: coachpulse 1.6s ease-in-out infinite;
+}
+@keyframes coachpulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(69, 196, 230, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(69, 196, 230, 0);
+  }
 }
 
 /* ── overlays ── */
@@ -816,10 +1054,11 @@ tr.g-costly td {
     min-width: 4.2em;
   }
   .coach {
-    left: 2vw;
-    right: 2vw;
-    max-width: none;
-    bottom: 7.5em;
+    width: min(280px, 78vw);
+    font-size: 0.82em;
+  }
+  .anat-box {
+    margin-right: 1.4em;
   }
   .tray {
     gap: 0.4em;
