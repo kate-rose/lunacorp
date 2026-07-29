@@ -5,6 +5,7 @@
 import { DECK, GUIDE_PAGES, INTERRUPT, INTERSTITIALS, buildFinaleBody } from './data/deck'
 import { ANATOMY_PINS, FILM_CARDS, PRACTICE, URL_DRILLS } from './data/orientation'
 import { ferretReact, startFerret } from './ferret'
+import { ELEANOR_HAPPY, ELEANOR_NOTES_HAPPY, ELEANOR_NOTES_THIRSTY, ELEANOR_THIRSTY } from './data/eleanor'
 import type { Grade, InterstitialId, Msg, Outcome, ResultRow } from './types'
 
 type Phase = 'title' | 'film' | 'practice' | 'shift' | 'review'
@@ -591,15 +592,13 @@ function flavorHtml(a: DesktopApp): string {
     return `<div class="notices"><div class="notices-head">LUNACORP DAILY NOTICES — Port Armstrong</div>${items.map((i) => `<div class="notice-item">▪ ${esc(i)}</div>`).join('')}</div>`
   }
   // eleanor
-  const plant = `<pre class="plant"> \\ | /
-  \\|/
- --●--   ELEANOR
- /|\\    (spider plant, resilient)
-/ | \\</pre>`
-  const status = S.eleanorWatered
-    ? `<div class="notice-item">You water ELEANOR. She does not thank you — plants don’t — but the leaves seem, on balance, less accusatory.</div>`
-    : `<button class="btn small" data-water="1">WATER ELEANOR</button>`
-  return `<div class="eleanor">${plant}<div class="notice-item">Last watered: Thursday (allegedly). Care instructions inherited, like everything on this desk.</div>${status}</div>`
+  const watered = S.eleanorWatered
+  const plant = `<pre class="plant${watered ? ' happy' : ''}">${esc(watered ? ELEANOR_HAPPY : ELEANOR_THIRSTY)}</pre>`
+  const notes = (watered ? ELEANOR_NOTES_HAPPY : ELEANOR_NOTES_THIRSTY)
+    .map((n) => `<div class="notice-item">${esc(n)}</div>`)
+    .join('')
+  const action = watered ? '' : `<button class="btn small" data-water="1">WATER ELEANOR</button>`
+  return `<div class="eleanor">${plant}${notes}${action}</div>`
 }
 
 function titleHtml(): string {
